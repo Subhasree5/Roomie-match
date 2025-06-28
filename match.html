@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Matches | RoomieMatch</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  
+    
+  </style>
+</head>
+<body class="bg-gradient-to-br from-purple-200 via-pink-100 to-blue-100 min-h-screen flex items-center justify-center px-4">
+  <div class="bg-white/90 backdrop-blur-lg shadow-2xl rounded-3xl p-10 w-full max-w-2xl">
+    <div class="mb-6 text-center">
+      <h2 class="text-3xl font-bold text-gray-800 mb-2">Your Roommate Matches</h2>
+      <p class="text-gray-500 text-sm">Based on your city</p>
+    </div>
+
+    <div id="matches" class="space-y-4">
+      <!-- Matches will be inserted here -->
+    </div>
+
+    <p class="text-sm text-center mt-6 text-gray-600">
+      <a href="login.html" class="text-purple-600 font-semibold hover:underline">Back to Login</a>
+    </p>
+  </div>
+  <nav class="bg-white shadow-md px-6 py-4 flex justify-between items-center rounded-b-2xl">
+  <h1 class="text-2xl font-bold text-purple-700">RoomieMatch</h1>
+  <div class="space-x-4">
+    <a href="profile.html" class="text-sm text-gray-700 hover:text-purple-600 font-medium">Profile</a>
+    <button id="logoutBtn" class="text-sm text-red-500 hover:underline">Logout</button>
+  </div>
+  </nav>
+  <script src="script/match.js"></script>
+</body>
+</html>

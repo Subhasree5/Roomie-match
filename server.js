@@ -1,28 +1,35 @@
 const express = require("express");
 const cors = require("cors");
 const admin = require("firebase-admin");
-const path=require("path");
+const path = require("path");
+
 const app = express();
 const port = 5000;
-app.use(express.json());
-const publicPath=path.join(__dirname,"..","public");
-app.use(express.static(publicPath));
-// Initialize Firebase
-const serviceAccount = require("./firebase/serviceAccountKey.json");
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
-const db = admin.firestore();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Test route
-app.get("/", (req, res) => {
-  res.sendFile(path.join(publicPath,"index.html"));
+// Serve static frontend files
+const publicPath = path.join(__dirname, "..", "public");
+app.use(express.static(publicPath));
+
+// Firebase Admin SDK setup
+const serviceAccount = require("./firebase/serviceAccountKey.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
 });
 
+const db = admin.firestore();
+
+// Root route (optional - serves index.html)
+app.get("/", (req, res) => {
+  res.sendFile(path.join(publicPath, "index.html"));
+});
+
+
+// 🔐 Signup Route
 app.post("/api/auth/signup", async (req, res) => {
   const { name, email, password, city, phone } = req.body;
 
@@ -46,6 +53,8 @@ app.post("/api/auth/signup", async (req, res) => {
   }
 });
 
+
+// 🔓 Login Route
 app.post("/api/auth/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -66,39 +75,68 @@ app.post("/api/auth/login", async (req, res) => {
 
     return res.status(200).json({
       msg: "Login successful",
-      user: { name: user.name, email: user.email, city: user.city }
+      user: {
+        name: user.name,
+        email: user.email,
+        city: user.city,
+        phone: user.phone || "",
+      },
     });
   } catch (err) {
+    console.error("Login error:", err);
     res.status(500).json({ msg: "Server error" });
   }
 });
 
-app.post("/api/update-profile", async (req, res) => {
-  const { email, name, city } = req.body;
 
-  if (!email || !name || !city) {
-    return res.status(400).json({ error: "Missing fields" });
-  }
+// 📄 Get User Profile by Email
+app.get("/api/user", async (req, res) => {
+  const email = req.query.email;
+
+  if (!email) return res.status(400).json({ error: "Email is required" });
 
   try {
-    const snapshot = await db.collection("users").where("email", "==", email).get();
+    const doc = await db.collection("users").doc(email).get();
 
-    if (snapshot.empty) {
+    if (!doc.exists) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    const userDoc = snapshot.docs[0].ref;
+    return res.json(doc.data());
+  } catch (error) {
+    console.error("Error getting profile:", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
 
-    await userDoc.update({ name, city });
 
-    res.json({ message: "Profile updated" });
+// ✏ Update User Profile
+app.post("/api/update", async (req, res) => {
+  const { email, name, city, phone } = req.body;
+
+  if (!email || !name || !city || !phone) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
+
+  try {
+    const userRef = db.collection("users").doc(email);
+    const doc = await userRef.get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    await userRef.update({ name, city, phone });
+
+    res.json({ message: "Profile updated successfully" });
   } catch (error) {
     console.error("Error updating profile:", error);
     res.status(500).json({ error: "Something went wrong" });
   }
 });
 
-// Firebase admin should be initialized above this
+
+// 🧩 Match Users by City
 app.get("/api/match", async (req, res) => {
   const city = req.query.city;
 
@@ -113,11 +151,12 @@ app.get("/api/match", async (req, res) => {
 
     res.json(users);
   } catch (err) {
-    console.error("Error fetching users:", err);
+    console.error("Error fetching matches:", err);
     res.status(500).json({ error: "Something went wrong" });
   }
 });
 
+// Start the server
 app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
+  console.log(`🚀 Server running at http://localhost:${port}`);
 });

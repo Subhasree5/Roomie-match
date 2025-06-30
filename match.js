@@ -8,8 +8,8 @@ window.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  const matchBox = document.createElement("div");
-  matchBox.className = "mt-6 space-y-4 w-full max-w-xl mx-auto";
+  const matchBox = document.getElementById("matches");
+  matchBox.innerHTML = "";
 
   try {
     // Fetch matches from backend using user's city
@@ -47,6 +47,10 @@ window.addEventListener("DOMContentLoaded", async () => {
     console.error("Error fetching matches:", error);
     matchBox.innerHTML = `<p class="text-center text-red-500">Unable to load matches. Please try again later.</p>`;
   }
+  document.getElementById("logoutBtn").addEventListener("click",()=>{
+    localStorage.removeItem("user");
+    window.location.ref="login.html";
+  })
 
   // Append results below your existing content
   document.body.appendChild(matchBox);
